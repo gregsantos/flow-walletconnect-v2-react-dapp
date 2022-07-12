@@ -1,5 +1,6 @@
 export const DEFAULT_MAIN_CHAINS = [
   // mainnets
+  'flow:mainnet',
   'eip155:1',
   'eip155:10',
   'eip155:100',
@@ -12,6 +13,7 @@ export const DEFAULT_MAIN_CHAINS = [
 
 export const DEFAULT_TEST_CHAINS = [
   // testnets
+  'flow:testnet',
   'eip155:42',
   'eip155:69',
   'eip155:80001',
@@ -34,6 +36,18 @@ export const DEFAULT_APP_METADATA = {
   url: 'https://walletconnect.com/',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
+
+/**
+ * Flow
+ */
+
+export enum DEFAULT_FLOW_METHODS {
+  FLOW_AUTHN = 'flow_authn',
+  FLOW_AUTHZ = 'flow_authz',
+  FLOW_USER_SIGN = 'flow_user_sign'
+}
+
+export enum DEFAULT_FLOW_EVENTS {}
 
 /**
  * EIP155

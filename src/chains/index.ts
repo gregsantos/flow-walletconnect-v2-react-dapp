@@ -1,5 +1,6 @@
 import { JsonRpcRequest } from '@walletconnect/jsonrpc-utils'
 
+import * as flow from './flow'
 import * as eip155 from './eip155'
 import * as cosmos from './cosmos'
 import * as polkadot from './polkadot'
@@ -10,6 +11,8 @@ import { ChainMetadata, ChainRequestRender } from '../helpers'
 export function getChainMetadata(chainId: string): ChainMetadata {
   const namespace = chainId.split(':')[0]
   switch (namespace) {
+    case 'flow':
+      return flow.getChainMetadata(chainId)
     case 'eip155':
       return eip155.getChainMetadata(chainId)
     case 'cosmos':
@@ -29,6 +32,8 @@ export function getChainRequestRender(
 ): ChainRequestRender[] {
   const namespace = chainId.split(':')[0]
   switch (namespace) {
+    case 'flow':
+      return flow.getChainRequestRender(request)
     case 'eip155':
       return eip155.getChainRequestRender(request)
     case 'cosmos':

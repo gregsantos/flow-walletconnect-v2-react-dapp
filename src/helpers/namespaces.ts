@@ -1,5 +1,7 @@
 import { ProposalTypes } from '@walletconnect/types'
 import {
+  DEFAULT_FLOW_METHODS,
+  DEFAULT_FLOW_EVENTS,
   DEFAULT_COSMOS_EVENTS,
   DEFAULT_COSMOS_METHODS,
   DEFAULT_EIP155_METHODS,
@@ -22,6 +24,8 @@ export const getNamespacesFromChains = (chains: string[]) => {
 
 export const getSupportedMethodsByNamespace = (namespace: string) => {
   switch (namespace) {
+    case 'flow':
+      return Object.values(DEFAULT_FLOW_METHODS)
     case 'eip155':
       return Object.values(DEFAULT_EIP155_METHODS)
     case 'cosmos':
@@ -35,6 +39,8 @@ export const getSupportedMethodsByNamespace = (namespace: string) => {
 
 export const getSupportedEventsByNamespace = (namespace: string) => {
   switch (namespace) {
+    case 'flow':
+      return Object.values(DEFAULT_FLOW_EVENTS)
     case 'eip155':
       return Object.values(DEFAULT_EIP_155_EVENTS)
     case 'cosmos':

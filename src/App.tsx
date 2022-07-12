@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { version } from '@walletconnect/sign-client/package.json'
-
 import Banner from './components/Banner'
 import Blockchain from './components/Blockchain'
 import Column from './components/Column'
 import Header from './components/Header'
 import Modal from './components/Modal'
 import {
+  DEFAULT_FLOW_METHODS,
   DEFAULT_COSMOS_METHODS,
   DEFAULT_EIP155_METHODS,
   DEFAULT_MAIN_CHAINS,
@@ -155,9 +155,34 @@ export default function App() {
     ]
   }
 
+  const getFlowActions = (): AccountAction[] => {
+    const onFlowAuthn = async (chainId: string, address: string) => {
+      console.log('onFlowAuthn')
+      /*       openRequestModal()
+      await flowRpc.testFlowAuthn(chainId, address) */
+    }
+    const onFlowAuthz = async (chainId: string, address: string) => {
+      console.log('onFlowAuthz')
+      /*       openRequestModal()
+      await flowRpc.testFlowAuthz(chainId, address) */
+    }
+    const onFlowUserSign = async (chainId: string, address: string) => {
+      console.log('onFlowUserSign')
+      /*       openRequestModal()
+      await flowRpc.testFlowUserSign(chainId, address) */
+    }
+    return [
+      { method: DEFAULT_FLOW_METHODS.FLOW_AUTHN, callback: onFlowAuthn },
+      { method: DEFAULT_FLOW_METHODS.FLOW_AUTHZ, callback: onFlowAuthz },
+      { method: DEFAULT_FLOW_METHODS.FLOW_USER_SIGN, callback: onFlowUserSign }
+    ]
+  }
+
   const getBlockchainActions = (chainId: string) => {
     const [namespace] = chainId.split(':')
     switch (namespace) {
+      case 'flow':
+        return getFlowActions()
       case 'eip155':
         return getEthereumActions()
       case 'cosmos':
@@ -203,6 +228,8 @@ export default function App() {
 
   const renderContent = () => {
     const chainOptions = isTestnet ? DEFAULT_TEST_CHAINS : DEFAULT_MAIN_CHAINS
+    console.log('chainOptions', chainOptions)
+
     return !accounts.length && !Object.keys(balances).length ? (
       <SLanding center>
         <Banner />
