@@ -1,25 +1,12 @@
 export const DEFAULT_MAIN_CHAINS = [
   // mainnets
-  'flow:mainnet',
-  'eip155:1',
-  'eip155:10',
-  'eip155:100',
-  'eip155:137',
-  'eip155:42161',
-  'eip155:42220',
-  'cosmos:cosmoshub-4',
-  'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ'
+  'flow:mainnet'
 ]
 
 export const DEFAULT_TEST_CHAINS = [
   // testnets
-  'flow:testnet',
-  'eip155:42',
-  'eip155:69',
-  'eip155:80001',
-  'eip155:421611',
-  'eip155:44787',
-  'solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K'
+  'flow:emulator',
+  'flow:testnet'
 ]
 
 export const DEFAULT_CHAINS = [...DEFAULT_MAIN_CHAINS, ...DEFAULT_TEST_CHAINS]

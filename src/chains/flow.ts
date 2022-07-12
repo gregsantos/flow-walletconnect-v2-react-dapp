@@ -17,21 +17,33 @@ export const FlowChainData = {
   },
   testnet: {
     id: 'flow:testnet',
-    name: 'Flow Devnet',
+    name: 'Flow Testnet',
     rpc: ['https://rest-testnet.onflow.org'],
+    slip44: 539,
+    testnet: true
+  },
+  emulator: {
+    id: 'flow:emulator',
+    name: 'Flow Emualtor',
+    rpc: ['http://localhost:8888'],
     slip44: 539,
     testnet: true
   }
 }
 
 export const FlowMetadata: NamespaceMetadata = {
+  // Flow Mainnet
   mainnet: {
-    // Flow Mainnet
     logo: 'https://avatars.githubusercontent.com/u/62387156?s=280&v=4',
     rgb: '116, 176, 244'
   },
-  // Flow Devnet
+  // Flow Testnet
   testnet: {
+    logo: 'https://avatars.githubusercontent.com/u/62387156?s=280&v=4',
+    rgb: '116, 176, 244'
+  },
+  // Flow Emualtor
+  emulator: {
     logo: 'https://avatars.githubusercontent.com/u/62387156?s=280&v=4',
     rgb: '116, 176, 244'
   }

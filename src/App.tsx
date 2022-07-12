@@ -5,16 +5,8 @@ import Blockchain from './components/Blockchain'
 import Column from './components/Column'
 import Header from './components/Header'
 import Modal from './components/Modal'
-import {
-  DEFAULT_FLOW_METHODS,
-  DEFAULT_COSMOS_METHODS,
-  DEFAULT_EIP155_METHODS,
-  DEFAULT_MAIN_CHAINS,
-  DEFAULT_SOLANA_METHODS,
-  DEFAULT_TEST_CHAINS
-} from './constants'
+import { DEFAULT_FLOW_METHODS, DEFAULT_MAIN_CHAINS, DEFAULT_TEST_CHAINS } from './constants'
 import { AccountAction, setLocaleStorageTestnetFlag } from './helpers'
-import Toggle from './components/Toggle'
 import RequestModal from './modals/RequestModal'
 import PairingModal from './modals/PairingModal'
 import PingModal from './modals/PingModal'
@@ -25,8 +17,7 @@ import {
   SConnectButton,
   SContent,
   SLanding,
-  SLayout,
-  SToggleContainer
+  SLayout
 } from './components/app'
 import { useWalletConnectClient } from './contexts/ClientContext'
 import { useJsonRpc } from './contexts/JsonRpcContext'
@@ -56,16 +47,7 @@ export default function App() {
   } = useWalletConnectClient()
 
   // Use `JsonRpcContext` to provide us with relevant RPC methods and states.
-  const {
-    ping,
-    ethereumRpc,
-    cosmosRpc,
-    solanaRpc,
-    isRpcRequestPending,
-    rpcResult,
-    isTestnet,
-    setIsTestnet
-  } = useJsonRpc()
+  const { ping, isRpcRequestPending, rpcResult, isTestnet, setIsTestnet } = useJsonRpc()
 
   const { chainData } = useChainData()
 
@@ -92,67 +74,6 @@ export default function App() {
   const onPing = async () => {
     openPingModal()
     await ping()
-  }
-
-  const getEthereumActions = (): AccountAction[] => {
-    const onSendTransaction = async (chainId: string, address: string) => {
-      openRequestModal()
-      await ethereumRpc.testSendTransaction(chainId, address)
-    }
-    const onSignTransaction = async (chainId: string, address: string) => {
-      openRequestModal()
-      await ethereumRpc.testSignTransaction(chainId, address)
-    }
-    const onSignPersonalMessage = async (chainId: string, address: string) => {
-      openRequestModal()
-      await ethereumRpc.testSignPersonalMessage(chainId, address)
-    }
-    const onEthSign = async (chainId: string, address: string) => {
-      openRequestModal()
-      await ethereumRpc.testEthSign(chainId, address)
-    }
-    const onSignTypedData = async (chainId: string, address: string) => {
-      openRequestModal()
-      await ethereumRpc.testSignTypedData(chainId, address)
-    }
-
-    return [
-      { method: DEFAULT_EIP155_METHODS.ETH_SEND_TRANSACTION, callback: onSendTransaction },
-      { method: DEFAULT_EIP155_METHODS.ETH_SIGN_TRANSACTION, callback: onSignTransaction },
-      { method: DEFAULT_EIP155_METHODS.PERSONAL_SIGN, callback: onSignPersonalMessage },
-      { method: DEFAULT_EIP155_METHODS.ETH_SIGN + ' (standard)', callback: onEthSign },
-      { method: DEFAULT_EIP155_METHODS.ETH_SIGN_TYPED_DATA, callback: onSignTypedData }
-    ]
-  }
-
-  const getCosmosActions = (): AccountAction[] => {
-    const onSignDirect = async (chainId: string, address: string) => {
-      openRequestModal()
-      await cosmosRpc.testSignDirect(chainId, address)
-    }
-    const onSignAmino = async (chainId: string, address: string) => {
-      openRequestModal()
-      await cosmosRpc.testSignAmino(chainId, address)
-    }
-    return [
-      { method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_DIRECT, callback: onSignDirect },
-      { method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_AMINO, callback: onSignAmino }
-    ]
-  }
-
-  const getSolanaActions = (): AccountAction[] => {
-    const onSignTransaction = async (chainId: string, address: string) => {
-      openRequestModal()
-      await solanaRpc.testSignTransaction(chainId, address)
-    }
-    const onSignMessage = async (chainId: string, address: string) => {
-      openRequestModal()
-      await solanaRpc.testSignMessage(chainId, address)
-    }
-    return [
-      { method: DEFAULT_SOLANA_METHODS.SOL_SIGN_TRANSACTION, callback: onSignTransaction },
-      { method: DEFAULT_SOLANA_METHODS.SOL_SIGN_MESSAGE, callback: onSignMessage }
-    ]
   }
 
   const getFlowActions = (): AccountAction[] => {
@@ -183,12 +104,6 @@ export default function App() {
     switch (namespace) {
       case 'flow':
         return getFlowActions()
-      case 'eip155':
-        return getEthereumActions()
-      case 'cosmos':
-        return getCosmosActions()
-      case 'solana':
-        return getSolanaActions()
       default:
         break
     }
@@ -227,8 +142,7 @@ export default function App() {
   }
 
   const renderContent = () => {
-    const chainOptions = isTestnet ? DEFAULT_TEST_CHAINS : DEFAULT_MAIN_CHAINS
-    console.log('chainOptions', chainOptions)
+    const chainOptions = [...DEFAULT_TEST_CHAINS, ...DEFAULT_MAIN_CHAINS] // isTestnet ? DEFAULT_TEST_CHAINS : DEFAULT_MAIN_CHAINS
 
     return !accounts.length && !Object.keys(balances).length ? (
       <SLanding center>
@@ -236,10 +150,6 @@ export default function App() {
         <h6>{`Using v${version || '2.0.0-beta'}`}</h6>
         <SButtonContainer>
           <h6>Select chains:</h6>
-          <SToggleContainer>
-            <p>Testnets Only?</p>
-            <Toggle active={isTestnet} onClick={toggleTestnets} />
-          </SToggleContainer>
           {chainOptions.map(chainId => (
             <Blockchain
               key={chainId}
