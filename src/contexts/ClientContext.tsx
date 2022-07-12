@@ -11,7 +11,6 @@ import {
   useState
 } from 'react'
 import { PublicKey } from '@solana/web3.js'
-
 import {
   DEFAULT_APP_METADATA,
   DEFAULT_LOGGER,
@@ -19,9 +18,10 @@ import {
   DEFAULT_RELAY_URL
 } from '../constants'
 import { AccountBalances, apiGetAccountBalance } from '../helpers'
-import { ERROR, getAppMetadata } from '@walletconnect/utils'
+import { getSdkError, getAppMetadata, getChainsFromAccounts } from '@walletconnect/utils'
 import { getPublicKeysFromAccounts } from '../helpers/solana'
 import { getRequiredNamespaces } from '../helpers/namespaces'
+import * as fcl from '@onflow/fcl'
 
 /**
  * Types
@@ -151,9 +151,10 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     if (typeof session === 'undefined') {
       throw new Error('Session is not connected')
     }
+
     await client.disconnect({
       topic: session.topic,
-      reason: ERROR.USER_DISCONNECTED.format()
+      reason: getSdkError('USER_DISCONNECTED')
     })
     // Reset app state after disconnect.
     reset()
@@ -222,7 +223,9 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
         metadata: getAppMetadata() || DEFAULT_APP_METADATA
       })
 
-      console.log('CREATED CLIENT: ', _client)
+      fcl.config.put('wc.adapter', { client: _client, QRCodeModal })
+      const { client } = await fcl.config.get('wc.adapter')
+      console.log('CREATED CLIENT: ', _client, client)
       setClient(_client)
       await _subscribeToEvents(_client)
       await _checkPersistedState(_client)

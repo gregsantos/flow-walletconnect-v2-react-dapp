@@ -22,6 +22,8 @@ import {
 import { useWalletConnectClient } from './contexts/ClientContext'
 import { useJsonRpc } from './contexts/JsonRpcContext'
 import { useChainData } from './contexts/ChainDataContext'
+import * as fcl from '@onflow/fcl'
+import './flow/config'
 
 export default function App() {
   const [modal, setModal] = useState('')
@@ -79,6 +81,12 @@ export default function App() {
   const getFlowActions = (): AccountAction[] => {
     const onFlowAuthn = async (chainId: string, address: string) => {
       console.log('onFlowAuthn')
+      try {
+        const res = await fcl.reauthenticate()
+        console.log('res', res)
+      } catch (error) {
+        console.error(error, 'Error on Authn')
+      }
       /*       openRequestModal()
       await flowRpc.testFlowAuthn(chainId, address) */
     }
