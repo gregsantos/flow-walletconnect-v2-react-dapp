@@ -1,6 +1,6 @@
 import Client from '@walletconnect/sign-client'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
-import QRCodeModal from '@walletconnect/legacy-modal'
+import QRCodeModal from '@walletconnect/qrcode-modal'
 import {
   createContext,
   ReactNode,
@@ -94,6 +94,8 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }
 
   const onSessionConnected = useCallback(async (_session: SessionTypes.Struct) => {
+    console.log('onSessionConnected')
+
     const allNamespaceAccounts = Object.values(_session.namespaces)
       .map(namespace => namespace.accounts)
       .flat()

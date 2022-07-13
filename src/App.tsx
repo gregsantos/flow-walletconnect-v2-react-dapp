@@ -24,6 +24,7 @@ import { useJsonRpc } from './contexts/JsonRpcContext'
 import { useChainData } from './contexts/ChainDataContext'
 import * as fcl from '@onflow/fcl'
 import './flow/config'
+import './decorate'
 
 export default function App() {
   const [modal, setModal] = useState('')
