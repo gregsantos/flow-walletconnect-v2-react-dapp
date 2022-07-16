@@ -3,29 +3,9 @@ import { createContext, ReactNode, useContext, useState } from 'react'
 import * as encoding from '@walletconnect/encoding'
 import { TypedDataField } from '@ethersproject/abstract-signer'
 import { Transaction as EthTransaction } from '@ethereumjs/tx'
-import {
-  formatDirectSignDoc,
-  stringifySignDocValues,
-  verifyAminoSignature,
-  verifyDirectSignature
-} from 'cosmos-wallet'
-import bs58 from 'bs58'
-import { verifyMessageSignature } from 'solana-wallet'
-import {
-  clusterApiUrl,
-  Connection,
-  Keypair,
-  SystemProgram,
-  Transaction as SolanaTransaction
-} from '@solana/web3.js'
-
 import { eip712, formatTestTransaction, getLocalStorageTestnetFlag } from '../helpers'
 import { useWalletConnectClient } from './ClientContext'
-import {
-  DEFAULT_COSMOS_METHODS,
-  DEFAULT_EIP155_METHODS,
-  DEFAULT_SOLANA_METHODS
-} from '../constants'
+import { DEFAULT_EIP155_METHODS } from '../constants'
 import { useChainData } from './ChainDataContext'
 
 /**
@@ -49,14 +29,6 @@ interface IContext {
     testSignPersonalMessage: TRpcRequestCallback
     testSignTypedData: TRpcRequestCallback
   }
-  cosmosRpc: {
-    testSignDirect: TRpcRequestCallback
-    testSignAmino: TRpcRequestCallback
-  }
-  solanaRpc: {
-    testSignMessage: TRpcRequestCallback
-    testSignTransaction: TRpcRequestCallback
-  }
   rpcResult?: IFormattedRpcResponse | null
   isRpcRequestPending: boolean
   isTestnet: boolean
@@ -76,7 +48,7 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
   const [result, setResult] = useState<IFormattedRpcResponse | null>()
   const [isTestnet, setIsTestnet] = useState(getLocalStorageTestnetFlag())
 
-  const { client, session, accounts, balances, solanaPublicKeys } = useWalletConnectClient()
+  const { client, session, accounts, balances } = useWalletConnectClient()
 
   const { chainData } = useChainData()
 
@@ -319,233 +291,11 @@ export function JsonRpcContextProvider({ children }: { children: ReactNode | Rea
     })
   }
 
-  // -------- COSMOS RPC METHODS --------
-
-  const cosmosRpc = {
-    testSignDirect: _createJsonRpcRequestHandler(async (chainId: string, address: string) => {
-      // test direct sign doc inputs
-      const inputs = {
-        fee: [{ amount: '2000', denom: 'ucosm' }],
-        pubkey: 'AgSEjOuOr991QlHCORRmdE5ahVKeyBrmtgoYepCpQGOW',
-        gasLimit: 200000,
-        accountNumber: 1,
-        sequence: 1,
-        bodyBytes:
-          '0a90010a1c2f636f736d6f732e62616e6b2e763162657461312e4d736753656e6412700a2d636f736d6f7331706b707472653766646b6c366766727a6c65736a6a766878686c63337234676d6d6b38727336122d636f736d6f7331717970717870713971637273737a673270767871367273307a716733797963356c7a763778751a100a0575636f736d120731323334353637',
-        authInfoBytes:
-          '0a500a460a1f2f636f736d6f732e63727970746f2e736563703235366b312e5075624b657912230a21034f04181eeba35391b858633a765c4a0c189697b40d216354d50890d350c7029012040a020801180112130a0d0a0575636f736d12043230303010c09a0c'
-      }
-
-      // split chainId
-      const [namespace, reference] = chainId.split(':')
-
-      // format sign doc
-      const signDoc = formatDirectSignDoc(
-        inputs.fee,
-        inputs.pubkey,
-        inputs.gasLimit,
-        inputs.accountNumber,
-        inputs.sequence,
-        inputs.bodyBytes,
-        reference
-      )
-
-      // cosmos_signDirect params
-      const params = {
-        signerAddress: address,
-        signDoc: stringifySignDocValues(signDoc)
-      }
-
-      // send message
-      const result = await client!.request<{ signature: string }>({
-        topic: session!.topic,
-        chainId,
-        request: {
-          method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_DIRECT,
-          params
-        }
-      })
-
-      const targetChainData = chainData[namespace][reference]
-
-      if (typeof targetChainData === 'undefined') {
-        throw new Error(`Missing chain data for chainId: ${chainId}`)
-      }
-
-      const valid = await verifyDirectSignature(address, result.signature, signDoc)
-
-      // format displayed result
-      return {
-        method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_DIRECT,
-        address,
-        valid,
-        result: result.signature
-      }
-    }),
-    testSignAmino: _createJsonRpcRequestHandler(async (chainId: string, address: string) => {
-      // split chainId
-      const [namespace, reference] = chainId.split(':')
-
-      // test amino sign doc
-      const signDoc = {
-        msgs: [],
-        fee: { amount: [], gas: '23' },
-        chain_id: 'foochain',
-        memo: 'hello, world',
-        account_number: '7',
-        sequence: '54'
-      }
-
-      // cosmos_signAmino params
-      const params = { signerAddress: address, signDoc }
-
-      // send message
-      const result = await client!.request<{ signature: string }>({
-        topic: session!.topic,
-        chainId,
-        request: {
-          method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_AMINO,
-          params
-        }
-      })
-
-      const targetChainData = chainData[namespace][reference]
-
-      if (typeof targetChainData === 'undefined') {
-        throw new Error(`Missing chain data for chainId: ${chainId}`)
-      }
-
-      const valid = await verifyAminoSignature(address, result.signature, signDoc)
-
-      // format displayed result
-      return {
-        method: DEFAULT_COSMOS_METHODS.COSMOS_SIGN_AMINO,
-        address,
-        valid,
-        result: result.signature
-      }
-    })
-  }
-
-  // -------- SOLANA RPC METHODS --------
-
-  const solanaRpc = {
-    testSignTransaction: _createJsonRpcRequestHandler(
-      async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        if (!solanaPublicKeys) {
-          throw new Error('Could not find Solana PublicKeys.')
-        }
-
-        const senderPublicKey = solanaPublicKeys[address]
-
-        const connection = new Connection(clusterApiUrl(isTestnet ? 'testnet' : 'mainnet-beta'))
-
-        // Using deprecated `getRecentBlockhash` over `getLatestBlockhash` here, since `mainnet-beta`
-        // cluster only seems to support `connection.getRecentBlockhash` currently.
-        const { blockhash } = await connection.getRecentBlockhash()
-
-        const transaction = new SolanaTransaction({
-          feePayer: senderPublicKey,
-          recentBlockhash: blockhash
-        }).add(
-          SystemProgram.transfer({
-            fromPubkey: senderPublicKey,
-            toPubkey: Keypair.generate().publicKey,
-            lamports: 1
-          })
-        )
-
-        try {
-          const result = await client!.request<{ signature: string }>({
-            chainId,
-            topic: session!.topic,
-            request: {
-              method: DEFAULT_SOLANA_METHODS.SOL_SIGN_TRANSACTION,
-              params: {
-                feePayer: transaction.feePayer!.toBase58(),
-                recentBlockhash: transaction.recentBlockhash,
-                instructions: transaction.instructions.map(i => ({
-                  programId: i.programId.toBase58(),
-                  data: bs58.encode(i.data),
-                  keys: i.keys.map(k => ({
-                    isSigner: k.isSigner,
-                    isWritable: k.isWritable,
-                    pubkey: k.pubkey.toBase58()
-                  }))
-                }))
-              }
-            }
-          })
-
-          // We only need `Buffer.from` here to satisfy the `Buffer` param type for `addSignature`.
-          // The resulting `UInt8Array` is equivalent to just `bs58.decode(...)`.
-          transaction.addSignature(senderPublicKey, Buffer.from(bs58.decode(result.signature)))
-
-          const valid = transaction.verifySignatures()
-
-          return {
-            method: DEFAULT_SOLANA_METHODS.SOL_SIGN_TRANSACTION,
-            address,
-            valid,
-            result: result.signature
-          }
-        } catch (error: any) {
-          throw new Error(error)
-        }
-      }
-    ),
-    testSignMessage: _createJsonRpcRequestHandler(
-      async (chainId: string, address: string): Promise<IFormattedRpcResponse> => {
-        if (!solanaPublicKeys) {
-          throw new Error('Could not find Solana PublicKeys.')
-        }
-
-        const senderPublicKey = solanaPublicKeys[address]
-
-        // Encode message to `UInt8Array` first via `TextEncoder` so we can pass it to `bs58.encode`.
-        const message = bs58.encode(
-          new TextEncoder().encode(`This is an example message to be signed - ${Date.now()}`)
-        )
-
-        try {
-          const result = await client!.request<{ signature: string }>({
-            chainId,
-            topic: session!.topic,
-            request: {
-              method: DEFAULT_SOLANA_METHODS.SOL_SIGN_MESSAGE,
-              params: {
-                pubkey: senderPublicKey.toBase58(),
-                message
-              }
-            }
-          })
-
-          const valid = verifyMessageSignature(
-            senderPublicKey.toBase58(),
-            result.signature,
-            message
-          )
-
-          return {
-            method: DEFAULT_SOLANA_METHODS.SOL_SIGN_MESSAGE,
-            address,
-            valid,
-            result: result.signature
-          }
-        } catch (error: any) {
-          throw new Error(error)
-        }
-      }
-    )
-  }
-
   return (
     <JsonRpcContext.Provider
       value={{
         ping,
         ethereumRpc,
-        cosmosRpc,
-        solanaRpc,
         rpcResult: result,
         isRpcRequestPending: pending,
         isTestnet,

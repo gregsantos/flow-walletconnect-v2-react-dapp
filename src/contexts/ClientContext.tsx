@@ -1,6 +1,7 @@
 import Client from '@walletconnect/sign-client'
+import { getSdkError, getAppMetadata } from '@walletconnect/utils'
+// import QRCodeModal from '@walletconnect/qrcode-modal'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
-import QRCodeModal from '@walletconnect/qrcode-modal'
 import {
   createContext,
   ReactNode,
@@ -10,18 +11,16 @@ import {
   useMemo,
   useState
 } from 'react'
-import { PublicKey } from '@solana/web3.js'
-import {
+import { AccountBalances, apiGetAccountBalance } from '../helpers'
+import { getRequiredNamespaces } from '../helpers/namespaces'
+import * as fcl from '@onflow/fcl'
+import * as fclWC from '@onflow/fcl-wc'
+/* import {
   DEFAULT_APP_METADATA,
   DEFAULT_LOGGER,
   DEFAULT_PROJECT_ID,
   DEFAULT_RELAY_URL
-} from '../constants'
-import { AccountBalances, apiGetAccountBalance } from '../helpers'
-import { getSdkError, getAppMetadata, getChainsFromAccounts } from '@walletconnect/utils'
-import { getPublicKeysFromAccounts } from '../helpers/solana'
-import { getRequiredNamespaces } from '../helpers/namespaces'
-import * as fcl from '@onflow/fcl'
+} from '../constants' */
 
 /**
  * Types
@@ -35,7 +34,6 @@ interface IContext {
   chains: string[]
   pairings: PairingTypes.Struct[]
   accounts: string[]
-  solanaPublicKeys?: Record<string, PublicKey>
   balances: AccountBalances
   isFetchingBalances: boolean
   setChains: any
@@ -59,7 +57,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
 
   const [balances, setBalances] = useState<AccountBalances>({})
   const [accounts, setAccounts] = useState<string[]>([])
-  const [solanaPublicKeys, setSolanaPublicKeys] = useState<Record<string, PublicKey>>()
   const [chains, setChains] = useState<string[]>([])
 
   const reset = () => {
@@ -104,7 +101,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     setSession(_session)
     setChains(allNamespaceChains)
     setAccounts(allNamespaceAccounts)
-    setSolanaPublicKeys(getPublicKeysFromAccounts(allNamespaceAccounts))
     await getAccountBalances(allNamespaceAccounts)
   }, [])
 
@@ -125,7 +121,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
 
         // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
         if (uri) {
-          QRCodeModal.open(uri, () => {
+          fclWC.QRCodeModal.open(uri, () => {
             console.log('EVENT', 'QR Code Modal closed')
           })
         }
@@ -140,7 +136,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
         // ignore rejection
       } finally {
         // close modal in case it was open
-        QRCodeModal.close()
+        fclWC.QRCodeModal.close()
       }
     },
     [chains, client, onSessionConnected]
@@ -218,16 +214,15 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     try {
       setIsInitializing(true)
 
-      const _client = await Client.init({
+      /*       const _client = await Client.init({
         logger: DEFAULT_LOGGER,
         relayUrl: DEFAULT_RELAY_URL,
         projectId: DEFAULT_PROJECT_ID,
         metadata: getAppMetadata() || DEFAULT_APP_METADATA
-      })
+      }) */
+      const _client = await fcl.config.get('wc.client')
 
-      fcl.config.put('wc.adapter', { client: _client, QRCodeModal })
-      const { client } = await fcl.config.get('wc.adapter')
-      console.log('CREATED CLIENT: ', _client, client)
+      console.log('CREATED CLIENT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
       await _checkPersistedState(_client)
@@ -251,7 +246,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       balances,
       isFetchingBalances,
       accounts,
-      solanaPublicKeys,
       chains,
       client,
       session,
@@ -265,7 +259,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       balances,
       isFetchingBalances,
       accounts,
-      solanaPublicKeys,
       chains,
       client,
       session,
