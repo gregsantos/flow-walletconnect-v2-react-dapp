@@ -1,6 +1,15 @@
 import * as fcl from '@onflow/fcl'
+import * as fclWC from '@onflow/fcl-wc'
 
 const USE_LOCAL = true
+
+const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
+const WC_METADATA = {
+  name: 'Flow WalletConnect',
+  description: 'Flow DApp for WalletConnect',
+  url: 'https://flow.com/',
+  icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
+}
 
 fcl
   .config()
@@ -9,7 +18,7 @@ fcl
   .put('app.detail.title', 'Test Harness')
   .put('app.detail.icon', 'https://placekitten.com/g/200/200')
   .put('service.OpenID.scopes', 'email')
-  .put('wc.projectId', '6427e017c4bd829eef203702a51688b0')
+  .put('wc.client', fclWC.initClient(WC_PROJECT_ID, WC_METADATA))
 
 if (USE_LOCAL) {
   fcl

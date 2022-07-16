@@ -18,10 +18,10 @@ export const DEFAULT_RELAY_URL = process.env.REACT_APP_RELAY_URL
 export const DEFAULT_LOGGER = 'debug'
 
 export const DEFAULT_APP_METADATA = {
-  name: 'React App',
-  description: 'React App for WalletConnect',
-  url: 'https://walletconnect.com/',
-  icons: ['https://avatars.githubusercontent.com/u/37784886']
+  name: 'Flow React WalletConnect',
+  description: 'Flow React DApp for WalletConnect',
+  url: 'https://flow.com/',
+  icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
 }
 
 /**
