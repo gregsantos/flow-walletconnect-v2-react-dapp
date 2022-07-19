@@ -25,6 +25,7 @@ import { useChainData } from './contexts/ChainDataContext'
 import * as fcl from '@onflow/fcl'
 import './flow/config'
 import './decorate'
+import { nope, yup } from './util'
 
 export default function App() {
   const [modal, setModal] = useState('')
@@ -65,13 +66,7 @@ export default function App() {
     if (typeof client === 'undefined') {
       throw new Error('WalletConnect is not initialized')
     }
-    // Suggest existing pairings (if any).
-    if (pairings.length) {
-      openPairingModal()
-    } else {
-      // If no existing pairings are available, trigger `WalletConnectClient.connect`.
-      connect()
-    }
+    connect()
   }
 
   const onPing = async () => {
@@ -88,13 +83,31 @@ export default function App() {
       } catch (error) {
         console.error(error, 'Error on Authn')
       }
-      /*       openRequestModal()
-      await flowRpc.testFlowAuthn(chainId, address) */
     }
     const onFlowAuthz = async (chainId: string, address: string) => {
       console.log('onFlowAuthz')
-      /*       openRequestModal()
-      await flowRpc.testFlowAuthz(chainId, address) */
+      // prettier-ignore
+      fcl
+        .mutate({
+          cadence: `
+            transaction(a: String, b: String, c: Address) {
+              prepare(acct: AuthAccount) {
+                log(acct)
+                log(a)
+                log(b)
+                log(c)
+              }
+            }
+          `,
+          args: (arg: any, t: any) => [
+            arg('Hello', t.String),
+            arg('WalletConnect', t.String),
+            arg('0x1234567', t.Address)
+          ],
+          limit: 999
+        })
+        .then(yup('Mutate'))
+        .catch(nope('Error on Mutate'))
     }
     const onFlowUserSign = async (chainId: string, address: string) => {
       console.log('onFlowUserSign')

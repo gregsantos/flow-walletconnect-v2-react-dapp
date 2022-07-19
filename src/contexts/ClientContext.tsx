@@ -91,12 +91,14 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }
 
   const onSessionConnected = useCallback(async (_session: SessionTypes.Struct) => {
-    console.log('onSessionConnected')
+    console.log('onSessionConnected', _session)
 
     const allNamespaceAccounts = Object.values(_session.namespaces)
       .map(namespace => namespace.accounts)
       .flat()
     const allNamespaceChains = Object.keys(_session.namespaces)
+
+    console.log('All namespace accounts', allNamespaceAccounts)
 
     setSession(_session)
     setChains(allNamespaceChains)
@@ -109,37 +111,28 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       if (typeof client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
-      console.log('connect, pairing topic is:', pairing?.topic)
       try {
         const requiredNamespaces = getRequiredNamespaces(chains)
         console.log('requiredNamespaces config for connect:', requiredNamespaces)
 
-        const { uri, approval } = await client.connect({
-          pairingTopic: pairing?.topic,
-          requiredNamespaces
-        })
+        const wcPairings = pairings.length ? pairings : null
+        console.log('Local Saved Pairings', wcPairings, 'Selected chains', chains)
+        const res = await fcl.reauthenticate({ wcPairings })
 
-        // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
-        if (uri) {
-          fclWC.QRCodeModal.open(uri, () => {
-            console.log('EVENT', 'QR Code Modal closed')
-          })
+        console.log('Authn response:', res)
+        if (client.session.length) {
+          const lastKeyIndex = client.session.keys.length - 1
+          const _session = client.session.get(client.session.keys[lastKeyIndex])
+          await onSessionConnected(_session)
         }
-
-        const session = await approval()
-        console.log('Established session:', session)
-        await onSessionConnected(session)
         // Update known pairings after session is connected.
         setPairings(client.pairing.getAll({ active: true }))
       } catch (e) {
         console.error(e)
         // ignore rejection
-      } finally {
-        // close modal in case it was open
-        fclWC.QRCodeModal.close()
       }
     },
-    [chains, client, onSessionConnected]
+    [client, pairings, chains, onSessionConnected]
   )
 
   const disconnect = useCallback(async () => {

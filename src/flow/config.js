@@ -1,7 +1,7 @@
 import * as fcl from '@onflow/fcl'
 import * as fclWC from '@onflow/fcl-wc'
 
-const USE_LOCAL = true
+const USE_LOCAL = false
 
 const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
 const WC_METADATA = {
