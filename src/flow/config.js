@@ -5,11 +5,13 @@ const USE_LOCAL = false
 
 const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
 const WC_METADATA = {
-  name: 'Flow WalletConnect',
-  description: 'Flow DApp for WalletConnect',
+  name: 'FCL WalletConnect',
+  description: 'FCL DApp for WalletConnect',
   url: 'https://flow.com/',
   icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
 }
+
+const wcAdapter = fclWC.wcAdapter(WC_PROJECT_ID, WC_METADATA)
 
 fcl
   .config()
@@ -18,7 +20,7 @@ fcl
   .put('app.detail.title', 'Test Harness')
   .put('app.detail.icon', 'https://placekitten.com/g/200/200')
   .put('service.OpenID.scopes', 'email')
-  .put('wc.client', fclWC.initClient(WC_PROJECT_ID, WC_METADATA))
+  .put('wc.adapter', wcAdapter)
 
 if (USE_LOCAL) {
   fcl

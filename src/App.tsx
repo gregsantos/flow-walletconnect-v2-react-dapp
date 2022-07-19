@@ -90,7 +90,7 @@ export default function App() {
       fcl
         .mutate({
           cadence: `
-            transaction(a: String, b: String, c: Address) {
+            transaction(a: Int, b: Int, c: Address) {
               prepare(acct: AuthAccount) {
                 log(acct)
                 log(a)
@@ -100,11 +100,11 @@ export default function App() {
             }
           `,
           args: (arg: any, t: any) => [
-            arg('Hello', t.String),
-            arg('WalletConnect', t.String),
-            arg('0x1234567', t.Address)
+            arg('6', t.Int),
+            arg('7', t.Int),
+            arg('0xba1132bc08f82fe2', t.Address)
           ],
-          limit: 999
+          limit: 999,
         })
         .then(yup('Mutate'))
         .catch(nope('Error on Mutate'))

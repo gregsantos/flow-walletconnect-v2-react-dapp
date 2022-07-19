@@ -1,6 +1,4 @@
 import Client from '@walletconnect/sign-client'
-import { getSdkError, getAppMetadata } from '@walletconnect/utils'
-// import QRCodeModal from '@walletconnect/qrcode-modal'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
 import {
   createContext,
@@ -14,13 +12,7 @@ import {
 import { AccountBalances, apiGetAccountBalance } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
 import * as fcl from '@onflow/fcl'
-import * as fclWC from '@onflow/fcl-wc'
-/* import {
-  DEFAULT_APP_METADATA,
-  DEFAULT_LOGGER,
-  DEFAULT_PROJECT_ID,
-  DEFAULT_RELAY_URL
-} from '../constants' */
+import { getSdkError } from '@onflow/fcl-wc'
 
 /**
  * Types
@@ -206,20 +198,15 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true)
-
-      /*       const _client = await Client.init({
-        logger: DEFAULT_LOGGER,
-        relayUrl: DEFAULT_RELAY_URL,
-        projectId: DEFAULT_PROJECT_ID,
-        metadata: getAppMetadata() || DEFAULT_APP_METADATA
-      }) */
-      const _client = await fcl.config.get('wc.client')
-
+      const { client } = await fcl.config.get('wc.adapter')
+      const _client = client
       console.log('CREATED CLIENT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
       await _checkPersistedState(_client)
     } catch (err) {
+      console.log('E', err)
+
       throw err
     } finally {
       setIsInitializing(false)
