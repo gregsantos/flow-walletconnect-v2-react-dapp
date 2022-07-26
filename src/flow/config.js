@@ -1,5 +1,5 @@
 import * as fcl from '@onflow/fcl'
-import * as fclWC from '@onflow/fcl-wc'
+import { initWcAdapter } from '@onflow/fcl-wc'
 
 const USE_LOCAL = false
 
@@ -11,7 +11,7 @@ const WC_METADATA = {
   icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
 }
 
-const wcAdapter = fclWC.wcAdapter(WC_PROJECT_ID, WC_METADATA)
+const wcAdapter = initWcAdapter({ projectId: WC_PROJECT_ID, metadata: WC_METADATA })
 
 fcl
   .config()

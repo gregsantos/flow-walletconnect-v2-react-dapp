@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { version } from '@walletconnect/sign-client/package.json'
 import Banner from './components/Banner'
+import Transaction from './components/Transaction'
 import Blockchain from './components/Blockchain'
 import Column from './components/Column'
 import Header from './components/Header'
@@ -22,6 +23,7 @@ import {
 import { useWalletConnectClient } from './contexts/ClientContext'
 import { useJsonRpc } from './contexts/JsonRpcContext'
 import { useChainData } from './contexts/ChainDataContext'
+import { useTransaction } from './contexts/TransactionContext'
 import * as fcl from '@onflow/fcl'
 import './flow/config'
 import './decorate'
@@ -29,11 +31,13 @@ import { nope, yup } from './util'
 
 export default function App() {
   const [modal, setModal] = useState('')
-
   const closeModal = () => setModal('')
   const openPairingModal = () => setModal('pairing')
   const openPingModal = () => setModal('ping')
   const openRequestModal = () => setModal('request')
+
+  const { initTransactionState, setTxId, setTransactionStatus, setTransactionInProgress } =
+    useTransaction()
 
   // Initialize the WalletConnect client.
   const {
@@ -86,8 +90,10 @@ export default function App() {
     }
     const onFlowAuthz = async (chainId: string, address: string) => {
       console.log('onFlowAuthz')
+      initTransactionState()
+
       // prettier-ignore
-      fcl
+      const transactionId = await fcl
         .mutate({
           cadence: `
             transaction(a: Int, b: Int, c: Address) {
@@ -102,17 +108,44 @@ export default function App() {
           args: (arg: any, t: any) => [
             arg('6', t.Int),
             arg('7', t.Int),
-            arg('0xba1132bc08f82fe2', t.Address)
+            arg('0x6a52c92a9d46ce15', t.Address)
           ],
-          limit: 999,
+          limit: 999
         })
         .then(yup('Mutate'))
         .catch(nope('Error on Mutate'))
+
+      setTxId(transactionId)
+      fcl.tx(transactionId).subscribe((res: any) => {
+        if (!res) {
+          setTransactionStatus('error')
+          setTransactionInProgress(false)
+          return
+        }
+        setTransactionStatus(res.status)
+        if (res.status === 4) {
+          console.log('Tx Sealed')
+          setTransactionInProgress(false)
+        }
+      })
     }
     const onFlowUserSign = async (chainId: string, address: string) => {
       console.log('onFlowUserSign')
-      /*       openRequestModal()
-      await flowRpc.testFlowUserSign(chainId, address) */
+      const toHexStr = (str: string) => {
+        return Buffer.from(str).toString('hex')
+      }
+      const MSG = toHexStr('FOO')
+      try {
+        const res = await fcl
+          .currentUser()
+          .signUserMessage(MSG)
+          .then(yup('SignUserMessage'))
+          .catch(nope('Error signing user message'))
+
+        return fcl.AppUtils.verifyUserSignatures(MSG, res).then(console.log)
+      } catch (error) {
+        console.error(error, 'Error on Authn')
+      }
     }
     return [
       { method: DEFAULT_FLOW_METHODS.FLOW_AUTHN, callback: onFlowAuthn },
@@ -188,6 +221,8 @@ export default function App() {
       </SLanding>
     ) : (
       <SAccountsContainer>
+        <Transaction />
+
         <h3>Accounts</h3>
         <SAccounts>
           {accounts.map(account => {

@@ -5,7 +5,7 @@ import { createGlobalStyle } from 'styled-components'
 import { ClientContextProvider } from './contexts/ClientContext'
 import { JsonRpcContextProvider } from './contexts/JsonRpcContext'
 import { ChainDataContextProvider } from './contexts/ChainDataContext'
-
+import { TransactionContextProvider } from './contexts/TransactionContext'
 import App from './App'
 import { globalStyle } from './styles'
 const GlobalStyle = createGlobalStyle`
@@ -25,7 +25,9 @@ ReactDOM.render(
     <ChainDataContextProvider>
       <ClientContextProvider>
         <JsonRpcContextProvider>
-          <App />
+          <TransactionContextProvider>
+            <App />
+          </TransactionContextProvider>
         </JsonRpcContextProvider>
       </ClientContextProvider>
     </ChainDataContextProvider>
