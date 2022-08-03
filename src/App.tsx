@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-// import { version } from '@walletconnect/sign-client/package.json'
+import React, { useState } from 'react'
 import Banner from './components/Banner'
 import Transaction from './components/Transaction'
 import Blockchain from './components/Blockchain'
@@ -7,9 +6,7 @@ import Column from './components/Column'
 import Header from './components/Header'
 import Modal from './components/Modal'
 import { DEFAULT_FLOW_METHODS, DEFAULT_MAIN_CHAINS, DEFAULT_TEST_CHAINS } from './constants'
-import { AccountAction, setLocaleStorageTestnetFlag } from './helpers'
-import RequestModal from './modals/RequestModal'
-import PairingModal from './modals/PairingModal'
+import { AccountAction } from './helpers'
 import PingModal from './modals/PingModal'
 import {
   SAccounts,
@@ -32,9 +29,7 @@ import { nope, yup } from './util'
 export default function App() {
   const [modal, setModal] = useState('')
   const closeModal = () => setModal('')
-  const openPairingModal = () => setModal('pairing')
   const openPingModal = () => setModal('ping')
-  const openRequestModal = () => setModal('request')
 
   const { initTransactionState, setTxId, setTransactionStatus, setTransactionInProgress } =
     useTransaction()
@@ -55,16 +50,9 @@ export default function App() {
   } = useWalletConnectClient()
 
   // Use `JsonRpcContext` to provide us with relevant RPC methods and states.
-  const { ping, isRpcRequestPending, rpcResult, isTestnet, setIsTestnet } = useJsonRpc()
+  const { ping, isRpcRequestPending, rpcResult } = useJsonRpc()
 
   const { chainData } = useChainData()
-
-  // Close the pairing modal after a session is established.
-  useEffect(() => {
-    if (session && modal === 'pairing') {
-      closeModal()
-    }
-  }, [session, modal])
 
   const onConnect = () => {
     if (typeof client === 'undefined') {
@@ -164,13 +152,6 @@ export default function App() {
     }
   }
 
-  // Toggle between displaying testnet or mainnet chains as selection options.
-  const toggleTestnets = () => {
-    const nextIsTestnetState = !isTestnet
-    setIsTestnet(nextIsTestnetState)
-    setLocaleStorageTestnetFlag(nextIsTestnetState)
-  }
-
   const handleChainSelectionClick = (chainId: string) => {
     if (chains.includes(chainId)) {
       setChains(chains.filter(chain => chain !== chainId))
@@ -182,13 +163,6 @@ export default function App() {
   // Renders the appropriate model for the given request that is currently in-flight.
   const renderModal = () => {
     switch (modal) {
-      case 'pairing':
-        if (typeof client === 'undefined') {
-          throw new Error('WalletConnect is not initialized')
-        }
-        return <PairingModal pairings={pairings} connect={connect} />
-      case 'request':
-        return <RequestModal pending={isRpcRequestPending} result={rpcResult} />
       case 'ping':
         return <PingModal pending={isRpcRequestPending} result={rpcResult} />
       default:
