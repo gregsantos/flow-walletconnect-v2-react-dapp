@@ -37,7 +37,7 @@ if (USE_LOCAL) {
     .put('env', 'testnet')
     .put('flow.network', 'testnet')
     .put('accessNode.api', 'https://rest-testnet.onflow.org')
-    .put('discovery.wallet', 'http://localhost:3000/testnet/authn')
+    .put('discovery.wallet', 'http://localhost:3002/testnet/authn')
   //.put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
   // mainnet
   //.put("env", "mainnet")
