@@ -1,14 +1,5 @@
 import { ProposalTypes } from '@walletconnect/types'
-import {
-  DEFAULT_FLOW_METHODS,
-  DEFAULT_FLOW_EVENTS,
-  DEFAULT_COSMOS_EVENTS,
-  DEFAULT_COSMOS_METHODS,
-  DEFAULT_EIP155_METHODS,
-  DEFAULT_EIP_155_EVENTS,
-  DEFAULT_SOLANA_EVENTS,
-  DEFAULT_SOLANA_METHODS
-} from '../constants'
+import { DEFAULT_FLOW_METHODS, DEFAULT_FLOW_EVENTS } from '../constants'
 
 export const getNamespacesFromChains = (chains: string[]) => {
   const supportedNamespaces: string[] = []
@@ -26,12 +17,6 @@ export const getSupportedMethodsByNamespace = (namespace: string) => {
   switch (namespace) {
     case 'flow':
       return Object.values(DEFAULT_FLOW_METHODS)
-    case 'eip155':
-      return Object.values(DEFAULT_EIP155_METHODS)
-    case 'cosmos':
-      return Object.values(DEFAULT_COSMOS_METHODS)
-    case 'solana':
-      return Object.values(DEFAULT_SOLANA_METHODS)
     default:
       throw new Error(`No default methods for namespace: ${namespace}`)
   }
@@ -41,12 +26,6 @@ export const getSupportedEventsByNamespace = (namespace: string) => {
   switch (namespace) {
     case 'flow':
       return Object.values(DEFAULT_FLOW_EVENTS)
-    case 'eip155':
-      return Object.values(DEFAULT_EIP_155_EVENTS)
-    case 'cosmos':
-      return Object.values(DEFAULT_COSMOS_EVENTS)
-    case 'solana':
-      return Object.values(DEFAULT_SOLANA_EVENTS)
     default:
       throw new Error(`No default events for namespace: ${namespace}`)
   }

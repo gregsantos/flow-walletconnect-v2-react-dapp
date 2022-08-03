@@ -3,14 +3,7 @@ import styled from 'styled-components'
 
 import Icon from './Icon'
 
-import { AssetData, fromWad } from '../helpers'
-
-import eth from '../assets/eth.svg'
-import erc20 from '../assets/erc20.svg'
-import { getChainMetadata } from '../chains'
-
-const xdai = getChainMetadata('eip155:100').logo
-const matic = getChainMetadata('eip155:137').logo
+import { AssetData } from '../helpers'
 
 const SAsset = styled.div`
   width: 100%;
@@ -38,17 +31,13 @@ const SAssetBalance = styled.div`
 function getAssetIcon(asset: AssetData): JSX.Element {
   if (!!asset.contractAddress) {
     const src = `https://raw.githubusercontent.com/TrustWallet/tokens/master/tokens/${asset.contractAddress.toLowerCase()}.png`
-    return <Icon src={src} fallback={erc20} />
+    return <Icon src={src} />
   }
   switch (asset.symbol.toLowerCase()) {
-    case 'eth':
-      return <Icon src={eth} />
-    case 'xdai':
-      return <Icon src={xdai} />
-    case 'matic':
-      return <Icon src={matic} />
+    case 'flow':
+      return <Icon src={``} />
     default:
-      return <Icon src={erc20} />
+      return <Icon src={``} />
   }
 }
 
@@ -65,7 +54,7 @@ const Asset = (props: AssetProps) => {
         <SAssetName>{asset.name}</SAssetName>
       </SAssetLeft>
       <SAssetRight>
-        <SAssetBalance>{`${fromWad(asset.balance || '0')} ${asset.symbol}`}</SAssetBalance>
+        <SAssetBalance>{`${asset.balance || '0'} ${asset.symbol}`}</SAssetBalance>
       </SAssetRight>
     </SAsset>
   )

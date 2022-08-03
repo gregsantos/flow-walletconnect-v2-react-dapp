@@ -1,4 +1,4 @@
-import Client from '@walletconnect/sign-client'
+// import Client from '@walletconnect/sign-client'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
 import {
   createContext,
@@ -18,7 +18,7 @@ import { getSdkError } from '@onflow/fcl-wc'
  * Types
  */
 interface IContext {
-  client: Client | undefined
+  client: any | undefined
   session: SessionTypes.Struct | undefined
   connect: (pairing?: { topic: string }) => Promise<void>
   disconnect: () => Promise<void>
@@ -40,7 +40,7 @@ export const ClientContext = createContext<IContext>({} as IContext)
  * Provider
  */
 export function ClientContextProvider({ children }: { children: ReactNode | ReactNode[] }) {
-  const [client, setClient] = useState<Client>()
+  const [client, setClient] = useState<any>()
   const [pairings, setPairings] = useState<PairingTypes.Struct[]>([])
   const [session, setSession] = useState<SessionTypes.Struct>()
 
@@ -144,20 +144,20 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }, [client, session])
 
   const _subscribeToEvents = useCallback(
-    async (_client: Client) => {
+    async _client => {
       if (typeof _client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
 
-      _client.on('session_ping', args => {
+      _client.on('session_ping', (args: any) => {
         console.log('EVENT', 'session_ping', args)
       })
 
-      _client.on('session_event', args => {
+      _client.on('session_event', (args: any) => {
         console.log('EVENT', 'session_event', args)
       })
 
-      _client.on('session_update', ({ topic, params }) => {
+      _client.on('session_update', ({ topic, params }: any) => {
         console.log('EVENT', 'session_update', { topic, params })
         const { namespaces } = params
         const _session = _client.session.get(topic)
@@ -174,7 +174,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   )
 
   const _checkPersistedState = useCallback(
-    async (_client: Client) => {
+    async _client => {
       if (typeof _client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
