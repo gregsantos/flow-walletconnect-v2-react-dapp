@@ -1,17 +1,6 @@
 import * as fcl from '@onflow/fcl'
-import { initWcAdapter } from '@onflow/fcl-wc'
 
 const USE_LOCAL = false
-
-const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
-const WC_METADATA = {
-  name: 'FCL WalletConnect',
-  description: 'FCL DApp for WalletConnect',
-  url: 'https://flow.com/',
-  icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
-}
-
-const wcAdapter = initWcAdapter({ projectId: WC_PROJECT_ID, metadata: WC_METADATA })
 
 fcl
   .config()
@@ -20,7 +9,6 @@ fcl
   .put('app.detail.title', 'Test Harness')
   .put('app.detail.icon', 'https://placekitten.com/g/200/200')
   .put('service.OpenID.scopes', 'email')
-  .put('wc.adapter', wcAdapter)
 
 if (USE_LOCAL) {
   fcl
@@ -38,6 +26,7 @@ if (USE_LOCAL) {
     .put('flow.network', 'testnet')
     .put('accessNode.api', 'https://rest-testnet.onflow.org')
     .put('discovery.wallet', 'http://localhost:3002/testnet/authn')
+    .put('discovery.authn.include', ['0x82ec283f88a62e65', '0xead892083b3e2c6c'])
   //.put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
   // mainnet
   //.put("env", "mainnet")

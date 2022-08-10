@@ -1,4 +1,3 @@
-// import Client from '@walletconnect/sign-client'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
 import {
   createContext,
@@ -13,6 +12,7 @@ import { AccountBalances, apiGetAccountBalance } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
 import * as fcl from '@onflow/fcl'
 import { getSdkError } from '@onflow/fcl-wc'
+import { initWcAdapter } from '@onflow/fcl-wc'
 
 /**
  * Types
@@ -29,6 +29,14 @@ interface IContext {
   balances: AccountBalances
   isFetchingBalances: boolean
   setChains: any
+}
+
+const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
+const WC_METADATA = {
+  name: 'FCL WalletConnect',
+  description: 'FCL DApp for WalletConnect',
+  url: 'https://flow.com/',
+  icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
 }
 
 /**
@@ -198,8 +206,13 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true)
-      const { client } = await fcl.config.get('wc.adapter')
+      const { servicePlugin, client, QRCodeModal } = await initWcAdapter({
+        projectId: WC_PROJECT_ID,
+        metadata: WC_METADATA
+      })
+      fcl.config.put('wc.adapter', { servicePlugin, client, QRCodeModal })
       const _client = client
+      console.log('servicePlugin', servicePlugin)
       console.log('CREATED CLIENT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
