@@ -22,12 +22,11 @@ if (USE_LOCAL) {
   fcl
     .config()
     // testnet
-    .put('env', 'testnet')
     .put('flow.network', 'testnet')
     .put('accessNode.api', 'https://rest-testnet.onflow.org')
     .put('discovery.wallet', 'http://localhost:3002/testnet/authn')
-    .put('discovery.authn.include', ['0x82ec283f88a62e65', '0xead892083b3e2c6c'])
-  //.put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
+    //.put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
+  //.put('discovery.authn.include', ['0x82ec283f88a62e65', '0xead892083b3e2c6c'])
   // mainnet
   //.put("env", "mainnet")
   //.put("flow.network", "mainnet")

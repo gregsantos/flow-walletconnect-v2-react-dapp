@@ -12,7 +12,7 @@ import { AccountBalances, apiGetAccountBalance } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
 import * as fcl from '@onflow/fcl'
 import { getSdkError } from '@onflow/fcl-wc'
-import { initWcAdapter } from '@onflow/fcl-wc'
+import { initFclConnect } from '@onflow/fcl-wc'
 
 /**
  * Types
@@ -206,13 +206,13 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true)
-      const { servicePlugin, client, QRCodeModal } = await initWcAdapter({
+      const { fclConnectServicePlugin, client } = await initFclConnect({
         projectId: WC_PROJECT_ID,
         metadata: WC_METADATA
       })
-      fcl.config.put('wc.adapter', { servicePlugin, client, QRCodeModal })
+      fcl.pluginRegistry.add(fclConnectServicePlugin)
       const _client = client
-      console.log('servicePlugin', servicePlugin)
+      console.log('servicePlugin', fclConnectServicePlugin)
       console.log('CREATED CLIENT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
