@@ -145,6 +145,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     })
     // Reset app state after disconnect.
     reset()
+    fcl.unauthenticate()
   }, [client, session])
 
   const _subscribeToEvents = useCallback(
@@ -172,6 +173,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       _client.on('session_delete', () => {
         console.log('EVENT', 'session_delete')
         reset()
+        fcl.unauthenticate()
       })
     },
     [onSessionConnected]
