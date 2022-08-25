@@ -1,4 +1,6 @@
+import Client from '@walletconnect/sign-client'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
+import QRCodeModal from '@walletconnect/qrcode-modal'
 import {
   createContext,
   ReactNode,
@@ -8,17 +10,18 @@ import {
   useMemo,
   useState
 } from 'react'
+import * as fcl from '@onflow/fcl'
+import { initFclWc, getSdkError } from '@onflow/fcl-wc'
+
+import { DEFAULT_APP_METADATA, DEFAULT_PROJECT_ID } from '../constants'
 import { AccountBalances, apiGetAccountBalance } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
-import * as fcl from '@onflow/fcl'
-import { getSdkError } from '@onflow/fcl-wc'
-import { initFclConnect } from '@onflow/fcl-wc'
 
 /**
  * Types
  */
 interface IContext {
-  client: any | undefined
+  client: Client | undefined
   session: SessionTypes.Struct | undefined
   connect: (pairing?: { topic: string }) => Promise<void>
   disconnect: () => Promise<void>
@@ -31,14 +34,6 @@ interface IContext {
   setChains: any
 }
 
-const WC_PROJECT_ID = process.env.REACT_APP_WC_PROJECT_ID
-const WC_METADATA = {
-  name: 'FCL WalletConnect',
-  description: 'FCL DApp for WalletConnect',
-  url: 'https://flow.com/',
-  icons: ['https://avatars.githubusercontent.com/u/62387156?s=280&v=4']
-}
-
 /**
  * Context
  */
@@ -48,7 +43,7 @@ export const ClientContext = createContext<IContext>({} as IContext)
  * Provider
  */
 export function ClientContextProvider({ children }: { children: ReactNode | ReactNode[] }) {
-  const [client, setClient] = useState<any>()
+  const [client, setClient] = useState<Client>()
   const [pairings, setPairings] = useState<PairingTypes.Struct[]>([])
   const [session, setSession] = useState<SessionTypes.Struct>()
 
@@ -67,20 +62,25 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }
 
   const getAccountBalances = async (_accounts: string[]) => {
+    console.log('getAccountBalances', _accounts)
+
     setIsFetchingBalances(true)
     try {
       const arr = await Promise.all(
         _accounts.map(async account => {
           const [namespace, reference, address] = account.split(':')
-          const chainId = `${namespace}:${reference}`
-          const assets = await apiGetAccountBalance(address, chainId)
-          return { account, assets: [assets] }
+          // const chainId = `${namespace}:${reference}`
+          // const assets = await apiGetAccountBalance(address, chainId)
+          const balance = '0.00'
+          console.log('Get Account Balance', address, namespace, reference)
+
+          return { account, balance }
         })
       )
 
       const balances: AccountBalances = {}
-      arr.forEach(({ account, assets }) => {
-        balances[account] = assets
+      arr.forEach(({ account, balance }) => {
+        balances[account] = balance
       })
       setBalances(balances)
     } catch (e) {
@@ -91,14 +91,10 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }
 
   const onSessionConnected = useCallback(async (_session: SessionTypes.Struct) => {
-    console.log('onSessionConnected', _session)
-
     const allNamespaceAccounts = Object.values(_session.namespaces)
       .map(namespace => namespace.accounts)
       .flat()
     const allNamespaceChains = Object.keys(_session.namespaces)
-
-    console.log('All namespace accounts', allNamespaceAccounts)
 
     setSession(_session)
     setChains(allNamespaceChains)
@@ -107,32 +103,34 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }, [])
 
   const connect = useCallback(
-    async pairing => {
+    async (pairing: any) => {
       if (typeof client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
       try {
+        // use this to update config?
         const requiredNamespaces = getRequiredNamespaces(chains)
-        console.log('requiredNamespaces config for connect:', requiredNamespaces)
-
-        const wcPairings = pairings.length ? pairings : null
-        console.log('Local Saved Pairings', wcPairings, 'Selected chains', chains)
-        const res = await fcl.reauthenticate({ wcPairings })
-
-        console.log('Authn response:', res)
+        console.log('requiredNamespaces config for connect:', chains, requiredNamespaces['flow'])
+        try {
+          const res = await fcl.reauthenticate()
+          console.log('res', res)
+        } catch (error) {
+          console.error(error, 'Error on Authn')
+        }
         if (client.session.length) {
           const lastKeyIndex = client.session.keys.length - 1
           const _session = client.session.get(client.session.keys[lastKeyIndex])
+          console.log('session', _session, client.session.keys[lastKeyIndex])
           await onSessionConnected(_session)
+          // Update known pairings after session is connected.
+          setPairings(client.pairing.getAll({ active: true }))
         }
-        // Update known pairings after session is connected.
-        setPairings(client.pairing.getAll({ active: true }))
       } catch (e) {
         console.error(e)
         // ignore rejection
       }
     },
-    [client, pairings, chains, onSessionConnected]
+    [chains, client, onSessionConnected]
   )
 
   const disconnect = useCallback(async () => {
@@ -142,7 +140,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     if (typeof session === 'undefined') {
       throw new Error('Session is not connected')
     }
-
     await client.disconnect({
       topic: session.topic,
       reason: getSdkError('USER_DISCONNECTED')
@@ -152,20 +149,20 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   }, [client, session])
 
   const _subscribeToEvents = useCallback(
-    async _client => {
+    async (_client: Client) => {
       if (typeof _client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
 
-      _client.on('session_ping', (args: any) => {
+      _client.on('session_ping', args => {
         console.log('EVENT', 'session_ping', args)
       })
 
-      _client.on('session_event', (args: any) => {
+      _client.on('session_event', args => {
         console.log('EVENT', 'session_event', args)
       })
 
-      _client.on('session_update', ({ topic, params }: any) => {
+      _client.on('session_update', ({ topic, params }) => {
         console.log('EVENT', 'session_update', { topic, params })
         const { namespaces } = params
         const _session = _client.session.get(topic)
@@ -182,20 +179,19 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   )
 
   const _checkPersistedState = useCallback(
-    async _client => {
+    async (_client: Client) => {
       if (typeof _client === 'undefined') {
         throw new Error('WalletConnect is not initialized')
       }
       // populates existing pairings to state
       setPairings(_client.pairing.getAll({ active: true }))
-      console.log('RESTORED PAIRINGS: ', _client.pairing.getAll({ active: true }))
 
       if (typeof session !== 'undefined') return
       // populates (the last) existing session to state
       if (_client.session.length) {
         const lastKeyIndex = _client.session.keys.length - 1
         const _session = _client.session.get(_client.session.keys[lastKeyIndex])
-        console.log('RESTORED SESSION:', _session)
+
         await onSessionConnected(_session)
         return _session
       }
@@ -206,20 +202,19 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true)
-      const { fclConnectServicePlugin, client } = await initFclConnect({
-        projectId: WC_PROJECT_ID,
-        metadata: WC_METADATA
+
+      const { FclWcServicePlugin, client } = await initFclWc({
+        projectId: DEFAULT_PROJECT_ID,
+        metadata: DEFAULT_APP_METADATA
       })
-      fcl.pluginRegistry.add(fclConnectServicePlugin)
+      fcl.pluginRegistry.add(FclWcServicePlugin)
+
       const _client = client
-      console.log('servicePlugin', fclConnectServicePlugin)
-      console.log('CREATED CLIENT: ', _client)
+      console.log('CLIENT INIT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
       await _checkPersistedState(_client)
     } catch (err) {
-      console.log('E', err)
-
       throw err
     } finally {
       setIsInitializing(false)

@@ -1,7 +1,5 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { createGlobalStyle } from 'styled-components'
-
+import { createRoot } from 'react-dom/client'
 import { ClientContextProvider } from './contexts/ClientContext'
 import { JsonRpcContextProvider } from './contexts/JsonRpcContext'
 import { ChainDataContextProvider } from './contexts/ChainDataContext'
@@ -19,7 +17,9 @@ declare global {
   }
 }
 
-ReactDOM.render(
+const container = document.getElementById('root')
+const root = createRoot(container!)
+root.render(
   <>
     <GlobalStyle />
     <ChainDataContextProvider>
@@ -31,6 +31,5 @@ ReactDOM.render(
         </JsonRpcContextProvider>
       </ClientContextProvider>
     </ChainDataContextProvider>
-  </>,
-  document.getElementById('root')
+  </>
 )

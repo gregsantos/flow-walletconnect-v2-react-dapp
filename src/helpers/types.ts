@@ -155,5 +155,5 @@ export interface AccountAction {
 }
 
 export interface AccountBalances {
-  [account: string]: AssetData[]
+  [account: string]: string //AssetData[]
 }

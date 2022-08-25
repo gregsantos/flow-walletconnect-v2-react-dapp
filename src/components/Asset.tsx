@@ -42,7 +42,7 @@ function getAssetIcon(asset: AssetData): JSX.Element {
 }
 
 interface AssetProps {
-  asset: AssetData
+  asset: string //AssetData
 }
 
 const Asset = (props: AssetProps) => {
@@ -50,11 +50,10 @@ const Asset = (props: AssetProps) => {
   return (
     <SAsset {...props}>
       <SAssetLeft>
-        {getAssetIcon(asset)}
-        <SAssetName>{asset.name}</SAssetName>
+        <SAssetName>Flow</SAssetName>
       </SAssetLeft>
       <SAssetRight>
-        <SAssetBalance>{`${asset.balance || '0'} ${asset.symbol}`}</SAssetBalance>
+        <SAssetBalance>{`${asset || '0'}`}</SAssetBalance>
       </SAssetRight>
     </SAsset>
   )

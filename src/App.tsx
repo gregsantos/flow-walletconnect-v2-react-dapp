@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Banner from './components/Banner'
 import Transaction from './components/Transaction'
 import Blockchain from './components/Blockchain'
@@ -27,6 +27,7 @@ import './decorate'
 import { nope, yup } from './util'
 
 export default function App() {
+  const [services, setServices] = useState([])
   const [modal, setModal] = useState('')
   const closeModal = () => setModal('')
   const openPingModal = () => setModal('ping')
@@ -53,6 +54,29 @@ export default function App() {
   const { ping, isRpcRequestPending, rpcResult } = useJsonRpc()
 
   const { chainData } = useChainData()
+
+  useEffect(() => {
+    const fetchServices = async () =>
+      await fcl.discovery.authn.subscribe((res: { results: any }) => {
+        console.log('discovery api services', res)
+        setServices(res.results)
+      })
+    fetchServices()
+  }, [])
+
+  useEffect(() => {
+    console.log(
+      `
+      Client:`,
+      client,
+      `
+      Pairings:`,
+      pairings,
+      `
+      Session:`,
+      session
+    )
+  }, [client, pairings, session])
 
   const onConnect = () => {
     if (typeof client === 'undefined') {

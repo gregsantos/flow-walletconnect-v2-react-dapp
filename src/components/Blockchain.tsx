@@ -1,6 +1,9 @@
 import React, { PropsWithChildren, FC } from 'react'
+import * as fcl from '@onflow/fcl'
 import styled from 'styled-components'
 import { ChainData } from 'caip-api'
+import useFLOWBalance from '../hooks/useFLOWBalance'
+import { formattedCurrency } from '../utils/currency'
 
 import Asset from './Asset'
 import Button from './Button'
@@ -113,10 +116,24 @@ function getBlockchainDisplayData(
   return { data, meta }
 }
 
+export async function getAccountBalance(address: string) {
+  if (address == null) return Promise.resolve([])
+
+  // prettier-ignore
+  /*   return fcl.query({
+    cadence: FETCH_ACCOUNT_ITEMS_SCRIPT,
+    args: (arg, t) => [
+      fcl.arg(address, Address),
+    ],
+  }) */
+}
+
 const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
   props: PropsWithChildren<BlockchainProps>
 ) => {
   const { chainData, fetching, chainId, address, onClick, active, balances, actions } = props
+  const { data: flowBalance, isLoading } = useFLOWBalance(address)
+
   if (!Object.keys(chainData).length) return null
 
   const chain = getBlockchainDisplayData(chainId, chainData)
@@ -125,8 +142,7 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
 
   const name = chain.meta.name || chain.data.name
   const account = typeof address !== 'undefined' ? `${chainId}:${address}` : undefined
-  const assets =
-    typeof account !== 'undefined' && typeof balances !== 'undefined' ? balances[account] : []
+  //const flowBalance = typeof account !== 'undefined' && typeof balances !== 'undefined' ? balances[account] : ''
   return (
     <React.Fragment>
       <SAccount
@@ -148,13 +164,13 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
             </Column>
           ) : (
             <>
-              {!!assets && assets.length ? (
+              {!!flowBalance ? (
                 <SFullWidthContainer>
                   <h6>Balances</h6>
+                  {!isLoading && formattedCurrency(flowBalance)}
+
                   <Column center>
-                    {assets.map(asset => (
-                      <Asset key={asset.symbol} asset={asset} />
-                    ))}
+                    <Asset asset={flowBalance} />
                   </Column>
                 </SFullWidthContainer>
               ) : null}
