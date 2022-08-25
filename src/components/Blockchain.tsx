@@ -1,5 +1,4 @@
 import React, { PropsWithChildren, FC } from 'react'
-import * as fcl from '@onflow/fcl'
 import styled from 'styled-components'
 import { ChainData } from 'caip-api'
 import useFLOWBalance from '../hooks/useFLOWBalance'
@@ -116,18 +115,6 @@ function getBlockchainDisplayData(
   return { data, meta }
 }
 
-export async function getAccountBalance(address: string) {
-  if (address == null) return Promise.resolve([])
-
-  // prettier-ignore
-  /*   return fcl.query({
-    cadence: FETCH_ACCOUNT_ITEMS_SCRIPT,
-    args: (arg, t) => [
-      fcl.arg(address, Address),
-    ],
-  }) */
-}
-
 const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
   props: PropsWithChildren<BlockchainProps>
 ) => {
@@ -141,7 +128,7 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
   if (typeof chain === 'undefined') return null
 
   const name = chain.meta.name || chain.data.name
-  const account = typeof address !== 'undefined' ? `${chainId}:${address}` : undefined
+  //const account = typeof address !== 'undefined' ? `${chainId}:${address}` : undefined
   //const flowBalance = typeof account !== 'undefined' && typeof balances !== 'undefined' ? balances[account] : ''
   return (
     <React.Fragment>
@@ -167,10 +154,8 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
               {!!flowBalance ? (
                 <SFullWidthContainer>
                   <h6>Balances</h6>
-                  {!isLoading && formattedCurrency(flowBalance)}
-
                   <Column center>
-                    <Asset asset={flowBalance} />
+                    {!isLoading && <Asset asset={formattedCurrency(flowBalance)} />}
                   </Column>
                 </SFullWidthContainer>
               ) : null}

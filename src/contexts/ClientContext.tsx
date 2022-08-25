@@ -1,6 +1,5 @@
 import Client from '@walletconnect/sign-client'
 import { PairingTypes, SessionTypes } from '@walletconnect/types'
-import QRCodeModal from '@walletconnect/qrcode-modal'
 import {
   createContext,
   ReactNode,
@@ -14,7 +13,7 @@ import * as fcl from '@onflow/fcl'
 import { initFclWc, getSdkError } from '@onflow/fcl-wc'
 
 import { DEFAULT_APP_METADATA, DEFAULT_PROJECT_ID } from '../constants'
-import { AccountBalances, apiGetAccountBalance } from '../helpers'
+import { AccountBalances } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
 
 /**

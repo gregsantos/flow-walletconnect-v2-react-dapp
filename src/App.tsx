@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { Buffer } from 'buffer'
 import Banner from './components/Banner'
 import Transaction from './components/Transaction'
 import Blockchain from './components/Blockchain'
@@ -92,7 +93,6 @@ export default function App() {
 
   const getFlowActions = (): AccountAction[] => {
     const onFlowAuthn = async (chainId: string, address: string) => {
-      console.log('onFlowAuthn')
       try {
         const res = await fcl.reauthenticate()
         console.log('res', res)
@@ -101,26 +101,23 @@ export default function App() {
       }
     }
     const onFlowAuthz = async (chainId: string, address: string) => {
-      console.log('onFlowAuthz')
       initTransactionState()
 
       // prettier-ignore
       const transactionId = await fcl
         .mutate({
           cadence: `
-            transaction(a: Int, b: Int, c: Address) {
+            transaction(a: Int, b: Int) {
               prepare(acct: AuthAccount) {
                 log(acct)
                 log(a)
                 log(b)
-                log(c)
               }
             }
           `,
           args: (arg: any, t: any) => [
             arg('6', t.Int),
             arg('7', t.Int),
-            arg('0x6a52c92a9d46ce15', t.Address)
           ],
           limit: 999
         })
@@ -142,7 +139,6 @@ export default function App() {
       })
     }
     const onFlowUserSign = async (chainId: string, address: string) => {
-      console.log('onFlowUserSign')
       const toHexStr = (str: string) => {
         return Buffer.from(str).toString('hex')
       }
