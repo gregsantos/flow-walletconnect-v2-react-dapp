@@ -196,7 +196,7 @@ export default function App() {
     return !accounts.length && !Object.keys(balances).length ? (
       <SLanding center>
         <Banner />
-        <h6>{`Using v${'2.0.0-beta'}`}</h6>
+        <h6>FCL + WalletConnect</h6>
         <SButtonContainer>
           <h6>Select chains:</h6>
           {chainOptions.map(chainId => (
