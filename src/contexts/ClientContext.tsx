@@ -10,7 +10,7 @@ import {
   useState
 } from 'react'
 import * as fcl from '@onflow/fcl'
-import { initFclWc, getSdkError } from '@onflow/fcl-wc'
+import { init, getSdkError } from '@onflow/fcl-wc'
 
 import { DEFAULT_APP_METADATA, DEFAULT_PROJECT_ID } from '../constants'
 import { AccountBalances } from '../helpers'
@@ -204,9 +204,33 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     try {
       setIsInitializing(true)
 
-      const { FclWcServicePlugin, client } = await initFclWc({
+      const { FclWcServicePlugin, client } = await init({
         projectId: DEFAULT_PROJECT_ID,
-        metadata: DEFAULT_APP_METADATA
+        metadata: DEFAULT_APP_METADATA,
+        includeBaseWC: true,
+        wallets: [
+          {
+            f_type: 'Service',
+            f_vsn: '1.0.0',
+            type: 'authn',
+            method: 'WC/RPC',
+            uid: 'https://lilico.app',
+            endpoint: 'flow_authn',
+            provider: {
+              address: '0x9a4a5f2e7de57741',
+              name: 'Lilico Mobile',
+              icon: '/images/lilico.png',
+              description:
+                'A Mobile crypto wallet on Flow built for explorers, collectors, and gamers.',
+              color: '#FC814A',
+              supportEmail: 'hi@lilico.app',
+              website: 'https://link.lilico.app/wc'
+            }
+          }
+        ],
+        sessionRequestHook: (data: { name: string }) => {
+          console.log(`Approve Session in your ${data.name} Mobile Wallet.`)
+        }
       })
       fcl.pluginRegistry.add(FclWcServicePlugin)
 

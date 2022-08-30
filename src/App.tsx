@@ -58,7 +58,7 @@ export default function App() {
 
   useEffect(() => {
     const fetchServices = async () =>
-      await fcl.discovery.authn.subscribe((res: { results: any }) => {
+      await fcl.discovery.authn.subscribe((res: { results: [] }) => {
         console.log('discovery api services', res)
         setServices(res.results)
       })
