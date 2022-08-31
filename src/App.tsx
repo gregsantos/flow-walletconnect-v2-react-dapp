@@ -9,6 +9,7 @@ import Modal from './components/Modal'
 import { DEFAULT_FLOW_METHODS, DEFAULT_MAIN_CHAINS, DEFAULT_TEST_CHAINS } from './constants'
 import { AccountAction } from './helpers'
 import PingModal from './modals/PingModal'
+import RequestModal from './modals/RequestModal'
 import {
   SAccounts,
   SAccountsContainer,
@@ -32,6 +33,7 @@ export default function App() {
   const [modal, setModal] = useState('')
   const closeModal = () => setModal('')
   const openPingModal = () => setModal('ping')
+  const openRequestModal = () => setModal('request')
 
   const { initTransactionState, setTxId, setTransactionStatus, setTransactionInProgress } =
     useTransaction()
@@ -48,7 +50,9 @@ export default function App() {
     balances,
     isFetchingBalances,
     isInitializing,
-    setChains
+    setChains,
+    showRequestModal,
+    sessionRequestData
   } = useWalletConnectClient()
 
   // Use `JsonRpcContext` to provide us with relevant RPC methods and states.
@@ -64,6 +68,10 @@ export default function App() {
       })
     fetchServices()
   }, [])
+
+  useEffect(() => {
+    showRequestModal ? openRequestModal() : closeModal()
+  }, [showRequestModal])
 
   useEffect(() => {
     console.log(
@@ -185,6 +193,8 @@ export default function App() {
     switch (modal) {
       case 'ping':
         return <PingModal pending={isRpcRequestPending} result={rpcResult} />
+      case 'request':
+        return <RequestModal pending={true} data={sessionRequestData} result={rpcResult} />
       default:
         return null
     }
@@ -217,7 +227,6 @@ export default function App() {
       <SAccountsContainer>
         <Transaction />
 
-        <h3>Accounts</h3>
         <SAccounts>
           {accounts.map(account => {
             const [namespace, reference, address] = account.split(':')

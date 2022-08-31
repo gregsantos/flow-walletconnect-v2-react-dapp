@@ -62,7 +62,7 @@ export const SFullWidthContainer = styled.div`
 `
 
 export const SAccounts = styled(SFullWidthContainer)`
-  justify-content: space-between;
+  justify-content: center;
   & > div {
     margin: 12px 0;
     flex: 1 0 100%;

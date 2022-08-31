@@ -7,19 +7,23 @@ import { SModalContainer, SModalTitle, SModalParagraph } from './shared'
 
 interface RequestModalProps {
   pending: boolean
+  data: any
   result: any
 }
 
 const RequestModal = (props: RequestModalProps) => {
-  const { pending, result } = props
+  const { pending, data, result } = props
+
   return (
     <>
       {pending ? (
         <SModalContainer>
-          <SModalTitle>{'Pending JSON-RPC Request'}</SModalTitle>
+          <SModalTitle>{'Pending Session Request'}</SModalTitle>
           <SContainer>
             <Loader />
-            <SModalParagraph>{'Approve or reject request using your wallet'}</SModalParagraph>
+            <SModalParagraph>{`Approve or reject request using your ${
+              data && data.name
+            } wallet`}</SModalParagraph>
           </SContainer>
         </SModalContainer>
       ) : result ? (

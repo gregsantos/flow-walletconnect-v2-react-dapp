@@ -11,10 +11,9 @@ import {
 } from 'react'
 import * as fcl from '@onflow/fcl'
 import { init, getSdkError } from '@onflow/fcl-wc'
-
-import { DEFAULT_APP_METADATA, DEFAULT_PROJECT_ID } from '../constants'
 import { AccountBalances } from '../helpers'
 import { getRequiredNamespaces } from '../helpers/namespaces'
+import { DEFAULT_APP_METADATA, DEFAULT_PROJECT_ID } from '../constants'
 
 /**
  * Types
@@ -31,6 +30,15 @@ interface IContext {
   balances: AccountBalances
   isFetchingBalances: boolean
   setChains: any
+  showRequestModal: boolean
+  sessionRequestData: SessionRequestData | null
+}
+
+interface SessionRequestData {
+  name: string
+  description: string
+  url: string
+  icons: string[]
 }
 
 /**
@@ -52,6 +60,8 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const [balances, setBalances] = useState<AccountBalances>({})
   const [accounts, setAccounts] = useState<string[]>([])
   const [chains, setChains] = useState<string[]>([])
+  const [showRequestModal, setShowRequestModal] = useState<boolean>(false)
+  const [sessionRequestData, setSessionRequestData] = useState<SessionRequestData | null>(null)
 
   const reset = () => {
     setSession(undefined)
@@ -98,6 +108,8 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     setSession(_session)
     setChains(allNamespaceChains)
     setAccounts(allNamespaceAccounts)
+    setSessionRequestData(null)
+    setShowRequestModal(false)
     await getAccountBalances(allNamespaceAccounts)
   }, [])
 
@@ -214,7 +226,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
             f_vsn: '1.0.0',
             type: 'authn',
             method: 'WC/RPC',
-            uid: 'https://lilico.app',
+            uid: 'https://link.lilico.app/wc',
             endpoint: 'flow_authn',
             provider: {
               address: '0x9a4a5f2e7de57741',
@@ -228,8 +240,10 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
             }
           }
         ],
-        sessionRequestHook: (data: { name: string }) => {
+        sessionRequestHook: (data: SessionRequestData) => {
           console.log(`Approve Session in your ${data.name} Mobile Wallet.`)
+          setSessionRequestData(data)
+          setShowRequestModal(true)
         }
       })
       fcl.pluginRegistry.add(FclWcServicePlugin)
@@ -264,7 +278,9 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       session,
       connect,
       disconnect,
-      setChains
+      setChains,
+      showRequestModal,
+      sessionRequestData
     }),
     [
       pairings,
@@ -277,7 +293,9 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       session,
       connect,
       disconnect,
-      setChains
+      setChains,
+      showRequestModal,
+      sessionRequestData
     ]
   )
 

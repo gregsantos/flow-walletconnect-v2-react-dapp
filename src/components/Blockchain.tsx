@@ -137,11 +137,14 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
         onClick={() => onClick && onClick(props.chainId)}
         className={active ? 'active' : ''}
       >
-        <SChain>
-          <img src={chain.meta.logo} alt={name} />
-          <p>{name}</p>
-        </SChain>
-        {!!address && <p>{ellipseAddress(address)}</p>}
+        <SFullWidthContainer>
+          <SChain>
+            <img src={chain.meta.logo} alt={name} />
+            <p>{name}</p>
+          </SChain>
+          {!!address && <p>{ellipseAddress(address)}</p>}
+        </SFullWidthContainer>
+
         <SBlockchainChildrenContainer>
           {fetching ? (
             <Column center>
