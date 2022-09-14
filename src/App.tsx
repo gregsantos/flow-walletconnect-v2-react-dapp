@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import * as fcl from '@onflow/fcl'
 import { Buffer } from 'buffer'
 import Banner from './components/Banner'
 import Transaction from './components/Transaction'
@@ -23,7 +24,6 @@ import { useWalletConnectClient } from './contexts/ClientContext'
 import { useJsonRpc } from './contexts/JsonRpcContext'
 import { useChainData } from './contexts/ChainDataContext'
 import { useTransaction } from './contexts/TransactionContext'
-import * as fcl from '@onflow/fcl'
 import './flow/config'
 import './decorate'
 import { nope, yup } from './util'
@@ -52,6 +52,7 @@ export default function App() {
     isInitializing,
     setChains,
     showRequestModal,
+    setShowRequestModal,
     sessionRequestData
   } = useWalletConnectClient()
 
@@ -75,15 +76,15 @@ export default function App() {
 
   useEffect(() => {
     console.log(
-      `
-      Client:`,
-      client,
-      `
-      Pairings:`,
-      pairings,
-      `
-      Session:`,
-      session
+      `Pairings:`,
+      // @ts-ignore
+      client?.pairing?.getAll({ active: true }).length > 0,
+      client?.pairing?.getAll({ active: true }), // client?.pairing?.keys,
+
+      `Session:`,
+      // @ts-ignore
+      client?.session?.length > 0,
+      client?.session?.getAll()[0]
     )
   }, [client, pairings, session])
 
@@ -106,14 +107,17 @@ export default function App() {
         console.log('res', res)
       } catch (error) {
         console.error(error, 'Error on Authn')
+      } finally {
+        setShowRequestModal(false)
       }
     }
+
     const onFlowAuthz = async (chainId: string, address: string) => {
+      let transactionId
       initTransactionState()
 
-      // prettier-ignore
-      const transactionId = await fcl
-        .mutate({
+      try {
+        transactionId = await fcl.mutate({
           cadence: `
             transaction(a: Int, b: Int) {
               prepare(acct: AuthAccount) {
@@ -123,14 +127,16 @@ export default function App() {
               }
             }
           `,
-          args: (arg: any, t: any) => [
-            arg('6', t.Int),
-            arg('7', t.Int),
-          ],
+          args: (arg: any, t: any) => [arg('6', t.Int), arg('7', t.Int)],
           limit: 999
         })
-        .then(yup('Mutate'))
-        .catch(nope('Error on Mutate'))
+        // .then(yup('Mutate'))
+      } catch (error) {
+        console.error(error, 'Error on Mutate')
+        // .catch(nope('Error on Mutate'))
+      } finally {
+        setShowRequestModal(false)
+      }
 
       setTxId(transactionId)
       fcl.tx(transactionId).subscribe((res: any) => {
@@ -146,6 +152,7 @@ export default function App() {
         }
       })
     }
+
     const onFlowUserSign = async (chainId: string, address: string) => {
       const toHexStr = (str: string) => {
         return Buffer.from(str).toString('hex')
@@ -160,7 +167,9 @@ export default function App() {
 
         return fcl.AppUtils.verifyUserSignatures(MSG, res).then(console.log)
       } catch (error) {
-        console.error(error, 'Error on Authn')
+        console.error(error, 'Error on UserSign')
+      } finally {
+        setShowRequestModal(false)
       }
     }
     return [

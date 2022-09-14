@@ -3,6 +3,8 @@ import { PairingTypes, SessionTypes } from '@walletconnect/types'
 import {
   createContext,
   ReactNode,
+  SetStateAction,
+  Dispatch,
   useCallback,
   useContext,
   useEffect,
@@ -31,14 +33,31 @@ interface IContext {
   isFetchingBalances: boolean
   setChains: any
   showRequestModal: boolean
-  sessionRequestData: SessionRequestData | null
+  setShowRequestModal: Dispatch<SetStateAction<boolean>>
+  sessionRequestData: any // SessionRequestData | null
 }
 
-interface SessionRequestData {
+interface PeerMetadata {
   name: string
   description: string
   url: string
   icons: string[]
+}
+
+interface IPairing {
+  topic: string
+  expiry: number
+  relay: {
+    protocol: string
+  }
+  active: boolean
+  peerMetadata: PeerMetadata
+}
+
+interface WcRequestData {
+  session: any
+  pairing: IPairing
+  uri: string | undefined
 }
 
 /**
@@ -61,7 +80,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const [accounts, setAccounts] = useState<string[]>([])
   const [chains, setChains] = useState<string[]>([])
   const [showRequestModal, setShowRequestModal] = useState<boolean>(false)
-  const [sessionRequestData, setSessionRequestData] = useState<SessionRequestData | null>(null)
+  const [sessionRequestData, setSessionRequestData] = useState<PeerMetadata | null>(null)
 
   const reset = () => {
     setSession(undefined)
@@ -127,6 +146,8 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
           console.log('res', res)
         } catch (error) {
           console.error(error, 'Error on Authn')
+        } finally {
+          setShowRequestModal(false)
         }
         if (client.session.length) {
           const lastKeyIndex = client.session.keys.length - 1
@@ -226,6 +247,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
             f_vsn: '1.0.0',
             type: 'authn',
             method: 'WC/RPC',
+            // this should be the wallets universal link and is used match with existing pairing
             uid: 'https://link.lilico.app/wc',
             endpoint: 'flow_authn',
             provider: {
@@ -240,16 +262,26 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
             }
           }
         ],
-        sessionRequestHook: (data: SessionRequestData) => {
-          console.log(`Approve Session in your ${data.name} Mobile Wallet.`)
-          setSessionRequestData(data)
+        sessionRequestHook: (data: WcRequestData) => {
+          console.log('WC Request data', data)
+          const peerMetadata = data?.pairing?.peerMetadata
+          setSessionRequestData(peerMetadata)
           setShowRequestModal(true)
+        },
+        pairingModalOveride: {
+          open: (uri: string = '', cb: () => void) => {
+            console.log(`open modal for uri ${uri}`)
+            window.setTimeout(() => cb(), 1000)
+          },
+          close: () => {
+            console.log('close modal')
+          }
         }
       })
       fcl.pluginRegistry.add(FclWcServicePlugin)
 
       const _client = client
-      console.log('CLIENT INIT: ', _client)
+      // console.log('CLIENT INIT: ', _client)
       setClient(_client)
       await _subscribeToEvents(_client)
       await _checkPersistedState(_client)
@@ -280,6 +312,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       disconnect,
       setChains,
       showRequestModal,
+      setShowRequestModal,
       sessionRequestData
     }),
     [
@@ -295,6 +328,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       disconnect,
       setChains,
       showRequestModal,
+      setShowRequestModal,
       sessionRequestData
     ]
   )
