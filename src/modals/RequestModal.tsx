@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import Loader from '../components/Loader'
 import { SContainer, STable, SRow, SKey, SValue } from '../components/shared'
 
@@ -13,17 +11,15 @@ interface RequestModalProps {
 
 const RequestModal = (props: RequestModalProps) => {
   const { pending, data, result } = props
-
+  const { name } = data?.session?.peer?.metadata || data?.pairing?.peerMetadata || ''
   return (
     <>
       {pending ? (
         <SModalContainer>
-          <SModalTitle>{'Pending Session Request'}</SModalTitle>
+          <SModalTitle>{`Pending ${data?.method} Request`}</SModalTitle>
           <SContainer>
             <Loader />
-            <SModalParagraph>{`Approve or reject request using your ${
-              data && data.name
-            } wallet`}</SModalParagraph>
+            <SModalParagraph>{`Approve or reject request using your ${name} wallet`}</SModalParagraph>
           </SContainer>
         </SModalContainer>
       ) : result ? (

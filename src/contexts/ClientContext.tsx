@@ -34,29 +34,14 @@ interface IContext {
   setChains: any
   showRequestModal: boolean
   setShowRequestModal: Dispatch<SetStateAction<boolean>>
-  sessionRequestData: any // SessionRequestData | null
-}
-
-interface PeerMetadata {
-  name: string
-  description: string
-  url: string
-  icons: string[]
-}
-
-interface IPairing {
-  topic: string
-  expiry: number
-  relay: {
-    protocol: string
-  }
-  active: boolean
-  peerMetadata: PeerMetadata
+  requestData: WcRequestData | null
 }
 
 interface WcRequestData {
-  session: any
-  pairing: IPairing
+  type: string
+  session: SessionTypes.Struct | undefined
+  pairing: PairingTypes.Struct | undefined
+  method: string
   uri: string | undefined
 }
 
@@ -80,7 +65,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
   const [accounts, setAccounts] = useState<string[]>([])
   const [chains, setChains] = useState<string[]>([])
   const [showRequestModal, setShowRequestModal] = useState<boolean>(false)
-  const [sessionRequestData, setSessionRequestData] = useState<PeerMetadata | null>(null)
+  const [requestData, setRequestData] = useState<WcRequestData | null>(null)
 
   const reset = () => {
     setSession(undefined)
@@ -127,7 +112,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
     setSession(_session)
     setChains(allNamespaceChains)
     setAccounts(allNamespaceAccounts)
-    setSessionRequestData(null)
+    setRequestData(null)
     setShowRequestModal(false)
     await getAccountBalances(allNamespaceAccounts)
   }, [])
@@ -262,21 +247,15 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
             }
           }
         ],
-        sessionRequestHook: (data: WcRequestData) => {
+        wcRequestHook: (data: WcRequestData) => {
           console.log('WC Request data', data)
-          const peerMetadata = data?.pairing?.peerMetadata
-          setSessionRequestData(peerMetadata)
+          setRequestData(data)
           setShowRequestModal(true)
-        },
-        pairingModalOveride: {
-          open: (uri: string = '', cb: () => void) => {
-            console.log(`open modal for uri ${uri}`)
-            window.setTimeout(() => cb(), 1000)
-          },
-          close: () => {
-            console.log('close modal')
-          }
         }
+        /* pairingModalOverride: (uri: string = '', rejectPairingRequest: () => void) => {
+          console.log(`open modal for uri ${uri}`)
+          window.setTimeout(() => rejectPairingRequest(), 1000)
+        } */
       })
       fcl.pluginRegistry.add(FclWcServicePlugin)
 
@@ -313,7 +292,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       setChains,
       showRequestModal,
       setShowRequestModal,
-      sessionRequestData
+      requestData
     }),
     [
       pairings,
@@ -329,7 +308,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       setChains,
       showRequestModal,
       setShowRequestModal,
-      sessionRequestData
+      requestData
     ]
   )
 

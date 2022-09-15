@@ -53,7 +53,7 @@ export default function App() {
     setChains,
     showRequestModal,
     setShowRequestModal,
-    sessionRequestData
+    requestData
   } = useWalletConnectClient()
 
   // Use `JsonRpcContext` to provide us with relevant RPC methods and states.
@@ -130,12 +130,12 @@ export default function App() {
           args: (arg: any, t: any) => [arg('6', t.Int), arg('7', t.Int)],
           limit: 999
         })
-        // .then(yup('Mutate'))
       } catch (error) {
         console.error(error, 'Error on Mutate')
-        // .catch(nope('Error on Mutate'))
       } finally {
         setShowRequestModal(false)
+        setTransactionStatus('error')
+        setTransactionInProgress(false)
       }
 
       setTxId(transactionId)
@@ -203,7 +203,7 @@ export default function App() {
       case 'ping':
         return <PingModal pending={isRpcRequestPending} result={rpcResult} />
       case 'request':
-        return <RequestModal pending={true} data={sessionRequestData} result={rpcResult} />
+        return <RequestModal pending={true} data={requestData} result={rpcResult} />
       default:
         return null
     }
