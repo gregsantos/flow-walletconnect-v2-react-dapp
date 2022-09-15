@@ -225,7 +225,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       const { FclWcServicePlugin, client } = await init({
         projectId: DEFAULT_PROJECT_ID,
         metadata: DEFAULT_APP_METADATA,
-        includeBaseWC: true,
+        includeBaseWC: false,
         wallets: [
           {
             f_type: 'Service',
@@ -252,7 +252,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
           setRequestData(data)
           setShowRequestModal(true)
         }
-        /* pairingModalOverride: (uri: string = '', rejectPairingRequest: () => void) => {
+        /*         pairingModalOverride: (uri: string = '', rejectPairingRequest: () => void) => {
           console.log(`open modal for uri ${uri}`)
           window.setTimeout(() => rejectPairingRequest(), 1000)
         } */
