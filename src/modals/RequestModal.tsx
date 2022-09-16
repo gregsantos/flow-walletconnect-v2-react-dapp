@@ -1,5 +1,6 @@
 import Loader from '../components/Loader'
 import { SContainer, STable, SRow, SKey, SValue } from '../components/shared'
+import { serviceOfType } from '../util'
 
 import { SModalContainer, SModalTitle, SModalParagraph } from './shared'
 
@@ -11,7 +12,8 @@ interface RequestModalProps {
 
 const RequestModal = (props: RequestModalProps) => {
   const { pending, data, result } = props
-  const { name } = data?.session?.peer?.metadata || data?.pairing?.peerMetadata || ''
+  const { name } =
+    data?.session?.peer?.metadata || data?.pairing?.peerMetadata || data?.service.provider || ''
   return (
     <>
       {pending ? (

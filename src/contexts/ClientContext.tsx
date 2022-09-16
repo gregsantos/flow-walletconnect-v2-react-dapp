@@ -39,6 +39,7 @@ interface IContext {
 
 interface WcRequestData {
   type: string
+  service: any
   session: SessionTypes.Struct | undefined
   pairing: PairingTypes.Struct | undefined
   method: string
@@ -82,10 +83,10 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       const arr = await Promise.all(
         _accounts.map(async account => {
           const [namespace, reference, address] = account.split(':')
-          // const chainId = `${namespace}:${reference}`
+          const chainId = `${namespace}:${reference}`
           // const assets = await apiGetAccountBalance(address, chainId)
           const balance = '0.00'
-          console.log('Get Account Balance', address, namespace, reference)
+          console.log('Get Account Balance', address, chainId)
 
           return { account, balance }
         })
@@ -225,7 +226,7 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
       const { FclWcServicePlugin, client } = await init({
         projectId: DEFAULT_PROJECT_ID,
         metadata: DEFAULT_APP_METADATA,
-        includeBaseWC: false,
+        includeBaseWC: true,
         wallets: [
           {
             f_type: 'Service',
