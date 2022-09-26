@@ -39,10 +39,10 @@ interface IContext {
 
 interface WcRequestData {
   type: string
-  service: any
-  session: SessionTypes.Struct | undefined
-  pairing: PairingTypes.Struct | undefined
   method: string
+  service: object
+  session: SessionTypes.Struct | null
+  pairing: PairingTypes.Struct | null
   uri: string | undefined
 }
 
@@ -253,10 +253,6 @@ export function ClientContextProvider({ children }: { children: ReactNode | Reac
           setRequestData(data)
           setShowRequestModal(true)
         }
-        /*         pairingModalOverride: (uri: string = '', rejectPairingRequest: () => void) => {
-          console.log(`open modal for uri ${uri}`)
-          window.setTimeout(() => rejectPairingRequest(), 1000)
-        } */
       })
       fcl.pluginRegistry.add(FclWcServicePlugin)
 

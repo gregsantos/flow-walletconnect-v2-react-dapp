@@ -134,8 +134,6 @@ export default function App() {
         console.error(error, 'Error on Mutate')
       } finally {
         setShowRequestModal(false)
-        setTransactionStatus('error')
-        setTransactionInProgress(false)
       }
 
       setTxId(transactionId)
