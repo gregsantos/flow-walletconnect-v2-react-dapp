@@ -25,7 +25,6 @@ if (USE_LOCAL) {
     .put('discovery.wallet', process.env.REACT_APP_DISCOVERY_WALLET)
     .put('discovery.authn.endpoint', process.env.REACT_APP_DISCOVERY_AUTHN_ENDPOINT)
   //.put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn")
-  //.put('discovery.authn.include', ['0x82ec283f88a62e65', '0xead892083b3e2c6c'])
   // mainnet
   //.put("flow.network", "mainnet")
   //.put("discovery.wallet", "https://fcl-discovery.onflow.org/authn")
